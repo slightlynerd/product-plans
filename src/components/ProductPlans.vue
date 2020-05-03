@@ -1,5 +1,6 @@
 <template>
   <div class="container">
+    <!-- plans -->
     <h2 class="text-center text-uppercase font-weight-bold">Product Plans</h2>
     <div class="row">
       <div class="col-12 col-lg-4 mt-4" v-for="(plan, index) in plans" :key="index">
@@ -21,7 +22,34 @@
             </ul>
           </div>
           <div class="card-footer">
-            <button class="btn btn-primary text-uppercase btn-lg rounded-pill px-5">Choose</button>
+            <button class="btn btn-primary text-uppercase btn-lg rounded-pill px-5" @click="openSubscribe(plan)">Subscribe</button>
+            <!-- modal markup -->
+            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Confirm</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <p>Are you sure you want to subscribe to this plan?</p>
+                  </div>
+                  <div class="modal-footer">
+                    <button
+                      type="button"
+                      class="btn btn-primary font-weight-bold rounded-pill px-4" @click="subscribe"
+                      :disabled="processing"
+                    >
+                      <span v-if="!processing">Subscribe</span>
+                      <span v-else>Subscribing...</span>
+                    </button>
+                    <button type="button" class="btn" data-dismiss="modal">Cancel</button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -34,89 +62,34 @@ export default {
   name: 'ProductPlans',
   data() {
     return {
-      plans: [
-        {
-          name: 'bronze',
-          icon: 'fa-bread-slice',
-          price: 1000,
-          features: [
-            {
-              name: '100 Sample UI Kits',
-              enabled: true
-            },
-            {
-              name: 'Easy to use',
-              enabled: true
-            },
-            {
-              name: 'All Open files',
-              enabled: true
-            },
-            {
-              name: 'Available in all files',
-              enabled: false
-            },
-            {
-              name: 'Responsive files',
-              enabled: false
-            }
-          ]
-        },
-        {
-          name: 'gold',
-          icon: 'fa-bolt',
-          price: 10000,
-          features: [
-            {
-              name: '100 Sample UI Kits',
-              enabled: true
-            },
-            {
-              name: 'Easy to use',
-              enabled: true
-            },
-            {
-              name: 'All Open files',
-              enabled: true
-            },
-            {
-              name: 'Available in all files',
-              enabled: true
-            },
-            {
-              name: 'Responsive files',
-              enabled: true
-            }
-          ]
-        },
-        {
-          name: 'silver',
-          icon: 'fa-bullseye',
-          price: 5000,
-          features: [
-            {
-              name: '100 Sample UI Kits',
-              enabled: true
-            },
-            {
-              name: 'Easy to use',
-              enabled: true
-            },
-            {
-              name: 'All Open files',
-              enabled: true
-            },
-            {
-              name: 'Available in all files',
-              enabled: true
-            },
-            {
-              name: 'Responsive files',
-              enabled: false
-            }
-          ]
-        }
-      ]
+      plans: [],
+      selectedPlan: {},
+      message: '',
+      processing: false
+    }
+  },
+  created () {
+    fetch('/api/plans')
+      .then(res => res.json())
+      .then(json => {
+        this.plans = json
+      })
+  },
+  methods: {
+    openSubscribe (plan) {
+      this.selectedPlan = plan
+      $('#exampleModal').modal('show')
+    },
+    subscribe () {
+      this.processing = true
+      fetch('/api/plans', { method: 'post', body: JSON.stringify(this.selectedPlan) })
+      .then(res => res.json())
+      .then(data => {
+        $('#exampleModal').modal('hide')
+        this.message = data.message
+        this.processing = false
+        alert(data.message)
+      })
     }
   },
 }
